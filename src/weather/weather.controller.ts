@@ -5,7 +5,8 @@ import { WeatherDocument } from './schemas/weather.schema';
 
 @Controller()
 export class WeatherController {
-  constructor(private readonly weatherService: WeatherService) {}
+  constructor(private readonly weatherService: WeatherService) {
+  }
 
   @Post('/create')
   getHello(@Body() createWeatherDto: CreateWeatherDto): Promise<WeatherDocument> {
@@ -13,7 +14,12 @@ export class WeatherController {
   }
 
   @Get(':city')
-  getWeather(@Param() city: string) {
+  getWeatherByCity(@Param() city: string) {
     return this.weatherService.getWeatherByCityAPI(city);
+  }
+
+  @Get('/:lat/:lon')
+  getWeatherByLatLon(@Param() geo: string) {
+    return this.weatherService.getWeatherByLatLonAPI(geo);
   }
 }
