@@ -7,7 +7,8 @@ import { CreateWeatherDto } from './dto/weather.dto';
 @Injectable()
 export class WeatherService {
   constructor(@InjectModel(Weather.name) private weatherModel: Model<WeatherDocument>,
-              private httpService: HttpService) {
+              private httpService: HttpService,
+  ) {
   }
 
   async getWeatherByCityAPI(city) {
@@ -21,8 +22,11 @@ export class WeatherService {
   }
 
   async saveCityWeather(createWeatherDto: CreateWeatherDto) {
-    const citiesInstance = new this.weatherModel({ cityName: createWeatherDto.cityName, date: createWeatherDto.date, temp: createWeatherDto.temp });
-    console.log('saveCity:' + citiesInstance);
+    const citiesInstance = new this.weatherModel({
+      cityName: createWeatherDto.cityName,
+      date: createWeatherDto.date,
+      temp: createWeatherDto.temp,
+    });
     return await citiesInstance.save(function(err) {
       if (err) console.log(err);
     });
@@ -43,27 +47,53 @@ export class WeatherService {
   }
 
   async getWeatherFromDB(city, date) {
-    const res = await this.weatherModel.findOne({ cityName: city, date: date }).exec();
-    console.log('getWeatherFromDB: ' + res, city, date);
-    return res;
+    return await this.weatherModel.findOne({ cityName: city, date: date }).exec();
   }
 
-  async getWeatherAPI(queryParams) {
-    let weather = await this.getWeatherFromDB(queryParams.city.toLowerCase(),
+  // async getWeatherAPI(queryParams) {
+  //   let weather = await this.getWeatherFromDB(queryParams.city.toLowerCase(),
+  //     this.formatDate(new Date));
+  //   if (!weather) {
+  //     let actualWeather = await this.getWeatherByCityAPI(queryParams.city);
+  //     if (!actualWeather) {
+  //       actualWeather = await this.getWeatherByLatLonAPI(queryParams);
+  //     }
+  //     if (!actualWeather) {
+  //       throw new BadRequestException();
+  //     }
+  //     const weather: CreateWeatherDto = {
+  //       cityName: actualWeather.city_name.toLowerCase(),
+  //       date: actualWeather.datetime.split(':')[0], temp: actualWeather.temp,
+  //     };
+  //     await this.saveCityWeather(weather);
+  //   }
+  //   weather = await this.getWeatherFromDB(queryParams.city, this.formatDate(new Date));
+  //   return weather;
+  // }
+
+  async getWeatherAPI(city) {
+    const weather = await this.getWeatherFromDB(city,
       this.formatDate(new Date));
     if (!weather) {
-      let actualWeather = await this.getWeatherByCityAPI(queryParams.city);
-      if (!actualWeather){
-        actualWeather = await this.getWeatherByLatLonAPI(queryParams);
-      }
-      if(!actualWeather){
+      const actualWeather = await this.getWeatherByCityAPI(city);
+      // if (!actualWeather) {
+      //   actualWeather = await this.getWeatherByLatLonAPI(queryParams);
+      // }
+      if (!actualWeather) {
         throw new BadRequestException();
       }
-      const weather: CreateWeatherDto = {cityName: actualWeather.city_name.toLowerCase(),
-        date: actualWeather.datetime.split(':')[0], temp: actualWeather.temp};
+      const weather: CreateWeatherDto = {
+        cityName: actualWeather.city_name.toLowerCase(),
+        date: actualWeather.datetime.split(':')[0], temp: actualWeather.temp,
+      };
       await this.saveCityWeather(weather);
+      return weather;
     }
-    weather = await this.getWeatherFromDB(queryParams.city, this.formatDate(new Date));
     return weather;
+  }
+
+  async getFormattedWeather(city) {
+    const currentWeather = await this.getWeatherAPI(city);
+    return `${currentWeather.cityName + ': ' + currentWeather.temp + ' degrees'}`;
   }
 }

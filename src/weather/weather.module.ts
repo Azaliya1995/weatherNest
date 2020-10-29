@@ -8,5 +8,7 @@ import { Weather, WeatherSchema } from './schemas/Weather.schema';
   imports: [HttpModule, MongooseModule.forFeature([{ name: Weather.name, schema: WeatherSchema }])],
   controllers: [WeatherController],
   providers: [WeatherService],
+  exports: [WeatherService],
 })
+
 export class WeatherModule {}
