@@ -12,7 +12,7 @@ export class WeatherService {
   }
 
   async getWeatherByCityAPI(city) {
-    const response = await this.httpService.get(`https://api.weatherbit.io/v2.0/current?city=${city}&key=147f9303247940138c03f9a9ed25d12b`).toPromise();
+    const response = await this.httpService.get(`https://api.weatherbit.io/v2.0/current?city=${city}&key=${process.env.API_KEY}`).toPromise();
     return response.data.data[0];
   }
 
@@ -50,32 +50,16 @@ export class WeatherService {
     return await this.weatherModel.findOne({ cityName: city, date: date }).exec();
   }
 
-  // async getWeatherAPI(queryParams) {
-  //   let weather = await this.getWeatherFromDB(queryParams.city.toLowerCase(),
-  //     this.formatDate(new Date));
-  //   if (!weather) {
-  //     let actualWeather = await this.getWeatherByCityAPI(queryParams.city);
-  //     if (!actualWeather) {
-  //       actualWeather = await this.getWeatherByLatLonAPI(queryParams);
-  //     }
-  //     if (!actualWeather) {
-  //       throw new BadRequestException();
-  //     }
-  //     const weather: CreateWeatherDto = {
-  //       cityName: actualWeather.city_name.toLowerCase(),
-  //       date: actualWeather.datetime.split(':')[0], temp: actualWeather.temp,
-  //     };
-  //     await this.saveCityWeather(weather);
-  //   }
-  //   weather = await this.getWeatherFromDB(queryParams.city, this.formatDate(new Date));
-  //   return weather;
-  // }
+  formatActualWeather(actualWeather) {
+    return actualWeather.datetime.split(':')[0];
+  }
 
   async getWeatherAPI(city) {
     const weather = await this.getWeatherFromDB(city,
       this.formatDate(new Date));
     if (!weather) {
       const actualWeather = await this.getWeatherByCityAPI(city);
+      //будет реализовано позже
       // if (!actualWeather) {
       //   actualWeather = await this.getWeatherByLatLonAPI(queryParams);
       // }
@@ -84,7 +68,7 @@ export class WeatherService {
       }
       const weather: CreateWeatherDto = {
         cityName: actualWeather.city_name.toLowerCase(),
-        date: actualWeather.datetime.split(':')[0], temp: actualWeather.temp,
+        date: this.formatActualWeather(actualWeather), temp: actualWeather.temp,
       };
       await this.saveCityWeather(weather);
       return weather;
