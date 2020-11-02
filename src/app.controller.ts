@@ -5,7 +5,7 @@ import { BotService } from './TelegramBot/bot.service';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService,
-              private botService:BotService) {}
+              private botService: BotService) {}
 
   @Get()
   getBotDialog(@Res() res) {
